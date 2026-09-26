@@ -1,0 +1,75 @@
+---
+# Publishes the collection to Ansible Galaxy when a version tag is pushed.
+#
+# To release 1.0.1:
+#   1. Set version: 1.0.1 in galaxy.yml.
+#   2. Add a 1.0.1 entry to CHANGELOG.md.
+#   3. Commit, then run:
+#        git tag v1.0.1
+#        git push origin main v1.0.1
+#
+# Required: the repository secret GALAXY_API_KEY, holding the API token from
+# galaxy.ansible.com under Collections, API token.
+# Required: the tag matches version: in galaxy.yml. The job fails otherwise.
+# Required: a new version each release. Galaxy rejects a version it has.
+name: Publish to Galaxy
+
+# Quoted: YAML 1.1 reads a bare on as true.
+'on':
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  PYTHON: /tmp/ansible/bin/python3
+  ANSIBLE_GALAXY: /tmp/ansible/bin/ansible-galaxy
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    steps:
+      # Pinned by commit because a tag can be moved to other code.
+      # v7.0.1, reviewed 2026-09-26.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Install ansible-core
+        run: |
+          python3 -m venv /tmp/ansible
+          /tmp/ansible/bin/pip install --require-hashes --only-binary=:all: \
+            -r .github/publish-requirements.txt
+
+      # The build takes its version from galaxy.yml, not the tag. A mismatch
+      # would publish a release under a number the tag doesn't name.
+      - name: Check the tag matches galaxy.yml
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version=$("$PYTHON" -c \
+            'import yaml; print(yaml.safe_load(open("galaxy.yml"))["version"])')
+          if [ "$TAG" != "v$version" ]; then
+            echo "::error::Tag $TAG does not match galaxy.yml version" \
+              "$version. Tag the commit v$version, or bump galaxy.yml."
+            exit 1
+          fi
+
+      - name: Run unit tests
+        run: >-
+          "$PYTHON" -m unittest discover -s tests/unit/plugins/callback
+
+      - name: Build
+        run: '"$ANSIBLE_GALAXY" collection build --output-path dist'
+
+      - name: Publish
+        env:
+          GALAXY_API_KEY: ${{ secrets.GALAXY_API_KEY }}
+        run: >-
+          "$ANSIBLE_GALAXY" collection publish dist/*.tar.gz
+          --api-key "$GALAXY_API_KEY"

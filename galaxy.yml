@@ -1,0 +1,22 @@
+---
+namespace: z0mbieparade
+name: multiline_output
+version: 1.0.0
+readme: README.md
+authors:
+  - z0mbieparade
+description: Ansible stdout callback with clean multiline msg display and secret redaction
+license:
+  - GPL-3.0-or-later
+tags:
+  - tools
+  - callback
+  - output
+  - redaction
+dependencies: {}
+repository: https://github.com/z0mbieparade/ansible-multiline-output
+issues: https://github.com/z0mbieparade/ansible-multiline-output/issues
+manifest:
+  directives:
+    - global-exclude *.md
+    - include README.md CHANGELOG.md
