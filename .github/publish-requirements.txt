@@ -11,6 +11,9 @@ cffi==2.1.1 \
 cryptography==50.0.1 \
     --hash=sha256:51afcfceb15597cf2635068e4ac9a56b2abde622edde17f37d85fd7b5306497a \
     --hash=sha256:51593d180cf6d179bde5c5d065bed81386b1f381656ae7d042b7ffc87a9895ad
+# ansible-galaxy needs distlib to build with galaxy.yml's manifest directives.
+distlib==0.4.3 \
+    --hash=sha256:4b0ce306c966eb73bc3a7b6abad017c556dadd92c44701562cd528ac7fde4d5b
 jinja2==3.1.6 \
     --hash=sha256:85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67
 markupsafe==3.0.3 \
