@@ -16,7 +16,5 @@ tags:
 dependencies: {}
 repository: https://github.com/z0mbieparade/ansible-multiline-output
 issues: https://github.com/z0mbieparade/ansible-multiline-output/issues
-manifest:
-  directives:
-    - global-exclude *.md
-    - include README.md CHANGELOG.md
+build_ignore:
+  - .*
